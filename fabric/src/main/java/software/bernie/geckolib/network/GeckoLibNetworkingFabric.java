@@ -1,10 +1,13 @@
 package software.bernie.geckolib.network;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,13 +27,19 @@ public final class GeckoLibNetworkingFabric implements GeckoLibNetworking {
      * <b><u>FOR GECKOLIB USE ONLY</u></b>
      */
     @Override
-    public <P extends MultiloaderPacket> void registerPacketInternal(ResourceLocation id, boolean isClientBound, Class<P> messageType, FriendlyByteBuf.Reader<P> decoder) {
+    public <P extends MultiloaderPacket> void registerPacketInternal(ResourceLocation id, boolean isClientBound, Class<P> messageType, StreamCodec<FriendlyByteBuf, P> codec) {
         if (isClientBound) {
-            if (GeckoLibServices.PLATFORM.isPhysicalClient())
-                GeckoLibClient.registerPacket(id, decoder);
+            //See: https://fabricmc.net/2024/04/19/1205.html
+            if (GeckoLibServices.PLATFORM.isPhysicalClient()) {
+                final CustomPacketPayload.Type<P> packetId = new CustomPacketPayload.Type<>(id);
+                PayloadTypeRegistry.playS2C().register(packetId, codec);
+                GeckoLibClient.registerPacket(packetId, codec);
+            }
         }
         else {
-            ServerPlayNetworking.registerGlobalReceiver(id, (server, player, packetListener, buffer, sender) -> decoder.apply(buffer).receiveMessage(player, server::execute));
+            final CustomPacketPayload.Type<P> packetId = new CustomPacketPayload.Type<>(id);
+            PayloadTypeRegistry.playC2S().register(packetId, codec);
+            ServerPlayNetworking.registerGlobalReceiver(packetId, (packet, context) -> packet.receiveMessage(context.player(), context.player().server::execute));
         }
     }
 

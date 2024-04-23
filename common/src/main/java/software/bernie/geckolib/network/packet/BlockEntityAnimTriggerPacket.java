@@ -2,6 +2,8 @@ package software.bernie.geckolib.network.packet;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
@@ -13,18 +15,16 @@ import java.util.function.Consumer;
 
 public record BlockEntityAnimTriggerPacket(BlockPos pos, String controllerName, String animName) implements MultiloaderPacket {
     public static final ResourceLocation ID = GeckoLibConstants.id("blockentity_anim_trigger");
+    public static final CustomPacketPayload.Type<BlockEntityAnimTriggerPacket> TYPE = new CustomPacketPayload.Type<>(ID);
 
-    @Override
-    public ResourceLocation id() {
-        return ID;
-    }
-
-    @Override
-    public void write(FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(this.pos);
-        buffer.writeUtf(this.controllerName);
-        buffer.writeUtf(this.animName);
-    }
+    public static final StreamCodec<FriendlyByteBuf, BlockEntityAnimTriggerPacket> CODEC = StreamCodec.of(
+            (buf, packet) -> {
+                buf.writeBlockPos(packet.pos());
+                buf.writeUtf(packet.controllerName());
+                buf.writeUtf(packet.animName());
+            },
+            (buf) -> new BlockEntityAnimTriggerPacket(buf.readBlockPos(), buf.readUtf(), buf.readUtf())
+    );
 
     public static BlockEntityAnimTriggerPacket decode(FriendlyByteBuf buffer) {
         return new BlockEntityAnimTriggerPacket(buffer.readBlockPos(), buffer.readUtf(), buffer.readUtf());
@@ -36,5 +36,10 @@ public record BlockEntityAnimTriggerPacket(BlockPos pos, String controllerName, 
             if (ClientUtil.getLevel().getBlockEntity(this.pos) instanceof GeoBlockEntity blockEntity)
                 blockEntity.triggerAnim(this.controllerName.isEmpty() ? null : this.controllerName, this.animName);
         });
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type(){
+        return TYPE;
     }
 }

@@ -2,6 +2,7 @@ package software.bernie.geckolib.service;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,7 +18,7 @@ import software.bernie.geckolib.network.packet.*;
  */
 public interface GeckoLibNetworking {
     static void init() {
-        registerPacket(BlockEntityAnimTriggerPacket.ID, true, BlockEntityAnimTriggerPacket.class, BlockEntityAnimTriggerPacket::decode);
+        registerPacket(BlockEntityAnimTriggerPacket.ID, true, BlockEntityAnimTriggerPacket.class, BlockEntityAnimTriggerPacket.CODEC);
         registerPacket(BlockEntityDataSyncPacket.ID, true, BlockEntityDataSyncPacket.class, BlockEntityDataSyncPacket::decode);
         registerPacket(EntityAnimTriggerPacket.ID, true, EntityAnimTriggerPacket.class, EntityAnimTriggerPacket::decode);
         registerPacket(EntityDataSyncPacket.ID, true, EntityDataSyncPacket.class, EntityDataSyncPacket::decode);
@@ -29,8 +30,8 @@ public interface GeckoLibNetworking {
      * Register a GeckoLib packet for use
      */
     @ApiStatus.Internal
-    private static <P extends MultiloaderPacket> void registerPacket(ResourceLocation id, boolean isClientBound, Class<P> messageType, FriendlyByteBuf.Reader<P> decoder) {
-        GeckoLibServices.NETWORK.registerPacketInternal(id, isClientBound, messageType, decoder);
+    private static <P extends MultiloaderPacket> void registerPacket(ResourceLocation id, boolean isClientBound, Class<P> messageType, StreamCodec<FriendlyByteBuf, P> codec) {
+        GeckoLibServices.NETWORK.registerPacketInternal(id, isClientBound, messageType, codec);
     }
 
     /**
@@ -39,7 +40,7 @@ public interface GeckoLibNetworking {
      * <b><u>FOR GECKOLIB USE ONLY</u></b>
      */
     @ApiStatus.Internal
-    <P extends MultiloaderPacket> void registerPacketInternal(ResourceLocation id, boolean isClientBound, Class<P> messageType, FriendlyByteBuf.Reader<P> decoder);
+    <P extends MultiloaderPacket> void registerPacketInternal(ResourceLocation id, boolean isClientBound, Class<P> messageType, StreamCodec<FriendlyByteBuf, P> codec);
 
     /**
      * Send a packet to all players currently tracking a given entity

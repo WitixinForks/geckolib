@@ -16,10 +16,6 @@ val parchmentVersion = libs.versions.parchment.asProvider().get()
 val fabricVersion = libs.versions.fabric.asProvider().get()
 val fapiVersion = libs.versions.fabric.api.get()
 
-java {
-    sourceCompatibility =  JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
 
 base {
     archivesName = "geckolib-fabric-${mcVersion}"
