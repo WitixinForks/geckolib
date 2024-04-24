@@ -1,6 +1,8 @@
 package software.bernie.geckolib.network.packet;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -17,24 +19,24 @@ import java.util.function.Consumer;
 
 public record EntityDataSyncPacket<D>(int entityId, boolean isReplacedEntity, SerializableDataTicket<D> dataTicket, D data) implements MultiloaderPacket {
     public static final ResourceLocation ID = GeckoLibConstants.id("entity_data_sync");
+    public static final CustomPacketPayload.Type<EntityDataSyncPacket<?>> TYPE = new CustomPacketPayload.Type<>(ID);
 
-    @Override
-    public ResourceLocation id() {
-        return ID;
+    public static final StreamCodec<FriendlyByteBuf, EntityDataSyncPacket> CODEC = StreamCodec.of(
+            EntityDataSyncPacket::encode,
+            EntityDataSyncPacket::decode
+    );
+
+    public static <T> void encode(FriendlyByteBuf buffer, EntityDataSyncPacket<T> packet) {
+        buffer.writeVarInt(packet.entityId());
+        buffer.writeBoolean(packet.isReplacedEntity());
+        buffer.writeUtf(packet.dataTicket().id());
+        packet.dataTicket().encode(packet.data(), buffer);
     }
 
-    @Override
-    public void write(FriendlyByteBuf buffer) {
-        buffer.writeVarInt(this.entityId);
-        buffer.writeBoolean(this.isReplacedEntity);
-        buffer.writeUtf(this.dataTicket.id());
-        this.dataTicket.encode(this.data, buffer);
-    }
-
-    public static <D> EntityDataSyncPacket<D> decode(FriendlyByteBuf buffer) {
+    public static <T> EntityDataSyncPacket<T> decode(FriendlyByteBuf buffer) {
         final int entityId = buffer.readVarInt();
         final boolean isReplacedEntity = buffer.readBoolean();
-        final SerializableDataTicket<D> dataTicket = (SerializableDataTicket<D>)DataTickets.byName(buffer.readUtf());
+        final SerializableDataTicket<T> dataTicket = (SerializableDataTicket<T>)DataTickets.byName(buffer.readUtf());
 
         return new EntityDataSyncPacket<>(entityId, isReplacedEntity, dataTicket, dataTicket.decode(buffer));
     }
@@ -57,5 +59,10 @@ public record EntityDataSyncPacket<D>(int entityId, boolean isReplacedEntity, Se
             if (RenderUtil.getReplacedAnimatable(entity.getType()) instanceof GeoReplacedEntity replacedEntity)
                 replacedEntity.setAnimData(entity, this.dataTicket, this.data);
         });
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type(){
+        return TYPE;
     }
 }

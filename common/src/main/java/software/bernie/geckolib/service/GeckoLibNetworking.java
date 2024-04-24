@@ -19,11 +19,11 @@ import software.bernie.geckolib.network.packet.*;
 public interface GeckoLibNetworking {
     static void init() {
         registerPacket(BlockEntityAnimTriggerPacket.ID, true, BlockEntityAnimTriggerPacket.class, BlockEntityAnimTriggerPacket.CODEC);
-        registerPacket(BlockEntityDataSyncPacket.ID, true, BlockEntityDataSyncPacket.class, BlockEntityDataSyncPacket::decode);
-        registerPacket(EntityAnimTriggerPacket.ID, true, EntityAnimTriggerPacket.class, EntityAnimTriggerPacket::decode);
-        registerPacket(EntityDataSyncPacket.ID, true, EntityDataSyncPacket.class, EntityDataSyncPacket::decode);
-        registerPacket(SingletonAnimTriggerPacket.ID, true, SingletonAnimTriggerPacket.class, SingletonAnimTriggerPacket::decode);
-        registerPacket(SingletonDataSyncPacket.ID, true, SingletonDataSyncPacket.class, SingletonDataSyncPacket::decode);
+        registerPacket(BlockEntityDataSyncPacket.ID, true, BlockEntityDataSyncPacket.class, BlockEntityDataSyncPacket.CODEC);
+        registerPacket(EntityAnimTriggerPacket.ID, true, EntityAnimTriggerPacket.class, EntityAnimTriggerPacket.CODEC);
+        registerPacket(EntityDataSyncPacket.ID, true, EntityDataSyncPacket.class, EntityDataSyncPacket.CODEC);
+        registerPacket(SingletonAnimTriggerPacket.ID, true, SingletonAnimTriggerPacket.class, SingletonAnimTriggerPacket.CODEC);
+        registerPacket(SingletonDataSyncPacket.ID, true, SingletonDataSyncPacket.class, SingletonDataSyncPacket.CODEC);
     }
 
     /**

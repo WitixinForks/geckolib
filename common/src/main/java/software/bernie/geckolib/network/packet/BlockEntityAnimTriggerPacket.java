@@ -23,12 +23,8 @@ public record BlockEntityAnimTriggerPacket(BlockPos pos, String controllerName, 
                 buf.writeUtf(packet.controllerName());
                 buf.writeUtf(packet.animName());
             },
-            (buf) -> new BlockEntityAnimTriggerPacket(buf.readBlockPos(), buf.readUtf(), buf.readUtf())
+            buf -> new BlockEntityAnimTriggerPacket(buf.readBlockPos(), buf.readUtf(), buf.readUtf())
     );
-
-    public static BlockEntityAnimTriggerPacket decode(FriendlyByteBuf buffer) {
-        return new BlockEntityAnimTriggerPacket(buffer.readBlockPos(), buffer.readUtf(), buffer.readUtf());
-    }
 
     @Override
     public void receiveMessage(@Nullable Player sender, Consumer<Runnable> workQueue) {
